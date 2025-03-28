@@ -1,12 +1,14 @@
 import {StatusBar} from 'expo-status-bar';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {StyleSheet, Text, TouchableOpacity, View, TextInput} from 'react-native';
 import React, {useState} from "react";
 import {theme} from "./colors";
 
 export default function App() {
     const [working, setWorking] = useState(true);
+    const [text, setText] = useState("");
     const travel = () => setWorking(false);
     const work = () => setWorking(true);
+    const onChangeText = (payload) => setText(event)
     return (
         <View style={styles.container}>
             <StatusBar style="auto"/>
@@ -17,6 +19,14 @@ export default function App() {
                 <TouchableOpacity onPress={travel}>
                     <Text style={{...styles.btnText, color: !working ? "white" : theme.gray}}>Travel</Text>
                 </TouchableOpacity> </View>
+            <View>
+                <TextInput
+                    value={text}
+                    onChangeText={onChangeText}
+                    multiline
+                    placeholder={working ? "Add a To Do": "Where do you wannt to go?"}
+                    style={styles.textInput}/>
+            </View>
         </View>
     );
 }
@@ -24,7 +34,7 @@ export default function App() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: theme.bg,
+        backgroundColor: String(theme.bg),
         paddingHorizontal: 20,
     },
     header: {
@@ -35,5 +45,13 @@ const styles = StyleSheet.create({
     btnText: {
         fontSize: 38,
         fontWeight: "600",
+    },
+    textInput: {
+        backgroundColor: "white",
+        paddingVertical: 15,
+        paddingHorizontal: 20,
+        borderRadius: 20,
+        marginTop: 20,
+        fontSize: 18,
     },
 });
