@@ -1,6 +1,5 @@
 import {StatusBar} from 'expo-status-bar';
-import {Keyboard, TouchableWithoutFeedback} from "react-native";
-import {ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Keyboard, Platform, TouchableWithoutFeedback} from 'react-native';
 import React, {useEffect, useState} from "react";
 import {theme} from "./colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -63,21 +62,31 @@ export default function App() {
         console.log(toDos)
     }
     const deleteToDo = async (key) => {
-        Alert.alert("Delete To Do?", "Are you sure?", [
-                {
-                    text: "Ok",
-                    onPress: () => {
-                        const newToDos = {...toDos}
-                        delete newToDos[key]
-                        setToDos(newToDos);
-                        saveToDos(newToDos);
+        if (Platform.OS === "web") {
+            const ok = confirm("Do you want to delete this To Do?")
+            if (ok) {
+                const newToDos = {...toDos}
+                delete newToDos[key]
+                setToDos(newToDos);
+                saveToDos(newToDos);
+            }
+        } else {
+            Alert.alert("Delete To Do?", "Are you sure?", [
+                    {
+                        text: "Ok",
+                        onPress: () => {
+                            const newToDos = {...toDos}
+                            delete newToDos[key]
+                            setToDos(newToDos);
+                            saveToDos(newToDos);
+                        }
+                    },
+                    {
+                        text: "Cancel", style: "destructive"
                     }
-                },
-                {
-                    text: "Cancel", style: "destructive"
-                }
-            ]
-        )
+                ]
+            )
+        }
     }
     const editToDo = (key, currentText) => {
         setEditingKey(key);
