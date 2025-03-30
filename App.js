@@ -9,6 +9,7 @@ const STORAGE_KEY_MENU = "@menu"
 
 export default function App() {
     const [working, setWorking] = useState(true);
+    const [isCompleted, setIsCompleted] = useState(false);
     const [text, setText] = useState("");
     const [toDos, setToDos] = useState({});
     const [loading, setLoading] = useState(true);
@@ -52,7 +53,7 @@ export default function App() {
             return;
         }
         const newToDos = {
-            ...toDos, [Date.now()]: {text, working: working},
+            ...toDos, [Date.now()]: {text, working: working, isCompleted: isCompleted},
         };
         setToDos(newToDos)
         await saveToDos(newToDos)
@@ -92,8 +93,14 @@ export default function App() {
         setEditingKey(null);
         setEditText("");
     };
-
-
+    const updateToDos = async (key) => {
+        const updatedToDos = {
+            ...toDos,
+            [key]: { ...toDos[key], isCompleted: !toDos[key].isCompleted}
+        }
+        setToDos(updatedToDos);
+        await saveToDos(updatedToDos);
+    }
 
     return (
         <View style={styles.container}>
@@ -133,9 +140,19 @@ export default function App() {
                                                     autoFocus
                                                 />
                                             ) : (
-                                                <Text style={styles.toDoText}>{toDos[key].text}</Text>
+                                                <Text
+                                                    style={[
+                                                        styles.toDoText,
+                                                        toDos[key].isCompleted && { textDecorationLine: "line-through", color: "gray" }
+                                                    ]}
+                                                >
+                                                    {toDos[key].text}
+                                                </Text>
                                             )}
                                             <View style={styles.btnContainer}>
+                                                <TouchableOpacity onPress={() => updateToDos(key)}>
+                                                    <Fontisto name="check" size={18} color={toDos[key].isCompleted ? "gray" : theme.toDoBg} />
+                                                </TouchableOpacity>
                                                 <TouchableOpacity onPress={() => editToDo(key, toDos[key].text)}>
                                                     <Fontisto name="commenting" size={18} color={theme.toDoBg} />
                                                 </TouchableOpacity>
