@@ -1,9 +1,11 @@
 import {StatusBar} from 'expo-status-bar';
+import {Keyboard, TouchableWithoutFeedback} from "react-native";
 import {ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import React, {useEffect, useState} from "react";
 import {theme} from "./colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Fontisto from '@expo/vector-icons/Fontisto';
+
 const STORAGE_KEY_TODO = "@toDos"
 const STORAGE_KEY_MENU = "@menu"
 
@@ -86,7 +88,7 @@ export default function App() {
         if (editText.trim() === "") return;
         const updatedToDos = {
             ...toDos,
-            [editingKey]: { ...toDos[editingKey], text: editText }
+            [editingKey]: {...toDos[editingKey], text: editText}
         };
         setToDos(updatedToDos);
         await saveToDos(updatedToDos);
@@ -96,78 +98,84 @@ export default function App() {
     const updateToDos = async (key) => {
         const updatedToDos = {
             ...toDos,
-            [key]: { ...toDos[key], isCompleted: !toDos[key].isCompleted}
+            [key]: {...toDos[key], isCompleted: !toDos[key].isCompleted}
         }
         setToDos(updatedToDos);
         await saveToDos(updatedToDos);
     }
 
     return (
-        <View style={styles.container}>
-            <StatusBar style="auto"/>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={work}>
-                    <Text style={{...styles.btnText, color: working ? "white" : theme.toDoBg}}>Work</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={travel}>
-                    <Text style={{...styles.btnText, color: !working ? "white" : theme.toDoBg}}>Travel</Text>
-                </TouchableOpacity>
-            </View>
-            <View>
-                <TextInput
-                    onSubmitEditing={addTodo}
-                    returnKeyType={"done"}
-                    value={text}
-                    onChangeText={onChangeText}
-                    placeholder={working ? "Add a To Do" : "Where do you wannt to go?"}
-                    style={styles.textInput}
-                />
-                {
-                    loading ? (
-                        <ActivityIndicator size="large" color="white" style={styles.loading}/>
-                    ) : (
-                        <ScrollView>
-                            {
-                                Object.keys(toDos).map(key =>
-                                    toDos[key].working === working ? (
-                                        <View style={styles.toDo} key={key}>
-                                            {editingKey === key ? (
-                                                <TextInput
-                                                    value={editText}
-                                                    onChangeText={setEditText}
-                                                    onSubmitEditing={saveEdit}
-                                                    style={styles.editInput}
-                                                    autoFocus
-                                                />
-                                            ) : (
-                                                <Text
-                                                    style={[
-                                                        styles.toDoText,
-                                                        toDos[key].isCompleted && { textDecorationLine: "line-through", color: "gray" }
-                                                    ]}
-                                                >
-                                                    {toDos[key].text}
-                                                </Text>
-                                            )}
-                                            <View style={styles.btnContainer}>
-                                                <TouchableOpacity onPress={() => updateToDos(key)}>
-                                                    <Fontisto name="check" size={18} color={toDos[key].isCompleted ? "gray" : theme.toDoBg} />
-                                                </TouchableOpacity>
-                                                <TouchableOpacity onPress={() => editToDo(key, toDos[key].text)}>
-                                                    <Fontisto name="commenting" size={18} color={theme.toDoBg} />
-                                                </TouchableOpacity>
-                                                <TouchableOpacity onPress={() => deleteToDo(key)}>
-                                                    <Fontisto name="trash" size={18} color={theme.toDoBg} />
-                                                </TouchableOpacity>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+            <View style={styles.container}>
+                <StatusBar style="auto"/>
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={work}>
+                        <Text style={{...styles.btnText, color: working ? "white" : theme.toDoBg}}>Work</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={travel}>
+                        <Text style={{...styles.btnText, color: !working ? "white" : theme.toDoBg}}>Travel</Text>
+                    </TouchableOpacity>
+                </View>
+                <View>
+                    <TextInput
+                        onSubmitEditing={addTodo}
+                        returnKeyType={"done"}
+                        value={text}
+                        onChangeText={onChangeText}
+                        placeholder={working ? "Add a To Do" : "Where do you wannt to go?"}
+                        style={styles.textInput}
+                    />
+                    {
+                        loading ? (
+                            <ActivityIndicator size="large" color="white" style={styles.loading}/>
+                        ) : (
+                            <ScrollView>
+                                {
+                                    Object.keys(toDos).map(key =>
+                                        toDos[key].working === working ? (
+                                            <View style={styles.toDo} key={key}>
+                                                {editingKey === key ? (
+                                                    <TextInput
+                                                        value={editText}
+                                                        onChangeText={setEditText}
+                                                        onSubmitEditing={saveEdit}
+                                                        style={styles.editInput}
+                                                        autoFocus
+                                                    />
+                                                ) : (
+                                                    <Text
+                                                        style={[
+                                                            styles.toDoText,
+                                                            toDos[key].isCompleted && {
+                                                                textDecorationLine: "line-through",
+                                                                color: "gray"
+                                                            }
+                                                        ]}
+                                                    >
+                                                        {toDos[key].text}
+                                                    </Text>
+                                                )}
+                                                <View style={styles.btnContainer}>
+                                                    <TouchableOpacity onPress={() => updateToDos(key)}>
+                                                        <Fontisto name="check" size={18}
+                                                                  color={toDos[key].isCompleted ? "gray" : theme.toDoBg}/>
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity onPress={() => editToDo(key, toDos[key].text)}>
+                                                        <Fontisto name="commenting" size={18} color={theme.toDoBg}/>
+                                                    </TouchableOpacity>
+                                                    <TouchableOpacity onPress={() => deleteToDo(key)}>
+                                                        <Fontisto name="trash" size={18} color={theme.toDoBg}/>
+                                                    </TouchableOpacity>
+                                                </View>
                                             </View>
-                                        </View>
-                                    ) : null
-                                )}
-                        </ScrollView>
-                    )
-                }
+                                        ) : null
+                                    )}
+                            </ScrollView>
+                        )
+                    }
+                </View>
             </View>
-        </View>
+        </TouchableWithoutFeedback>
     );
 }
 
