@@ -4,22 +4,40 @@ import React, {useEffect, useState} from "react";
 import {theme} from "./colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Fontisto from '@expo/vector-icons/Fontisto';
-const STORAGE_KEY = "@toDos"
+const STORAGE_KEY_TODO = "@toDos"
+const STORAGE_KEY_MENU = "@menu"
 
 export default function App() {
     const [working, setWorking] = useState(true);
     const [text, setText] = useState("");
-    const [toDos, setToDos] = useState({})
+    const [toDos, setToDos] = useState({});
     const [loading, setLoading] = useState(true);
-    const travel = () => setWorking(false);
-    const work = () => setWorking(true);
+    const [editingKey, setEditingKey] = useState(null);
+    const [editText, setEditText] = useState("");
+    const travel = async () => {
+        setWorking(false);
+        await saveMenu(false)
+    };
+    const work = async () => {
+        setWorking(true);
+        await saveMenu(true);
+    }
+    const saveMenu = async (isWorking) => {
+        await AsyncStorage.setItem(STORAGE_KEY_MENU, JSON.stringify(isWorking))
+    }
+    const loadMenuState = async () => {
+        const savedState = await AsyncStorage.getItem(STORAGE_KEY_MENU);
+        if (savedState !== null) {
+            setWorking(JSON.parse(savedState));
+        }
+    }
     const onChangeText = (payload) => setText(payload)
     const saveToDos = async (toSave) => {
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave))
+        await AsyncStorage.setItem(STORAGE_KEY_TODO, JSON.stringify(toSave))
     }
     const loadToDos = async () => {
         setLoading(true);
-        const s = await AsyncStorage.getItem(STORAGE_KEY);
+        const s = await AsyncStorage.getItem(STORAGE_KEY_TODO);
         if (s) {
             setToDos(JSON.parse(s))
         }
@@ -27,6 +45,7 @@ export default function App() {
     }
     useEffect(() => {
         loadToDos();
+        loadMenuState();
     }, []);
     const addTodo = async () => {
         if (text === "") {
@@ -57,6 +76,23 @@ export default function App() {
             ]
         )
     }
+    const editToDo = (key, currentText) => {
+        setEditingKey(key);
+        setEditText(currentText);
+        console.log(key, currentText)
+    }
+    const saveEdit = async () => {
+        if (editText.trim() === "") return;
+        const updatedToDos = {
+            ...toDos,
+            [editingKey]: { ...toDos[editingKey], text: editText }
+        };
+        setToDos(updatedToDos);
+        await saveToDos(updatedToDos);
+        setEditingKey(null);
+        setEditText("");
+    };
+
 
 
     return (
@@ -68,7 +104,8 @@ export default function App() {
                 </TouchableOpacity>
                 <TouchableOpacity onPress={travel}>
                     <Text style={{...styles.btnText, color: !working ? "white" : theme.toDoBg}}>Travel</Text>
-                </TouchableOpacity> </View>
+                </TouchableOpacity>
+            </View>
             <View>
                 <TextInput
                     onSubmitEditing={addTodo}
@@ -87,10 +124,25 @@ export default function App() {
                                 Object.keys(toDos).map(key =>
                                     toDos[key].working === working ? (
                                         <View style={styles.toDo} key={key}>
-                                            <Text style={styles.toDoText}>{toDos[key].text}</Text>
-                                            <TouchableOpacity onPress={() => deleteToDo(key)}>
-                                                <Fontisto name="trash" size={18} color={theme.toDoBg} />
-                                            </TouchableOpacity>
+                                            {editingKey === key ? (
+                                                <TextInput
+                                                    value={editText}
+                                                    onChangeText={setEditText}
+                                                    onSubmitEditing={saveEdit}
+                                                    style={styles.editInput}
+                                                    autoFocus
+                                                />
+                                            ) : (
+                                                <Text style={styles.toDoText}>{toDos[key].text}</Text>
+                                            )}
+                                            <View style={styles.btnContainer}>
+                                                <TouchableOpacity onPress={() => editToDo(key, toDos[key].text)}>
+                                                    <Fontisto name="commenting" size={18} color={theme.toDoBg} />
+                                                </TouchableOpacity>
+                                                <TouchableOpacity onPress={() => deleteToDo(key)}>
+                                                    <Fontisto name="trash" size={18} color={theme.toDoBg} />
+                                                </TouchableOpacity>
+                                            </View>
                                         </View>
                                     ) : null
                                 )}
@@ -142,5 +194,17 @@ const styles = StyleSheet.create({
     },
     loading: {
         marginTop: 20,
-    }
+    },
+    btnContainer: {
+        flexDirection: "row",
+        gap: 10,
+    },
+    editInput: {
+        backgroundColor: "white",
+        paddingVertical: 5,
+        paddingHorizontal: 10,
+        borderRadius: 10,
+        fontSize: 16,
+        flex: 0.8,
+    },
 });
